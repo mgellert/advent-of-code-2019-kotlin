@@ -5,16 +5,16 @@ build/
 !**/src/test/**/build/
 
 ### IntelliJ IDEA ###
-.idea/
+.idea
 
 ### Kotlin ###
 .kotlin
 
 ### VS Code ###
-.vscode/
+.vscode
 
 ### AoC inputs ###
-input/
+input
 
 ### Claude ###
-.claude/
+.claude
