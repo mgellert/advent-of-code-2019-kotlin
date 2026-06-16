@@ -10,7 +10,7 @@ private tailrec fun recursiveFuelRequirement(module: Long, acc: Long = 0): Long 
     return recursiveFuelRequirement(fuel, acc + fuel)
 }
 
-private fun parseInput(input: String) = input.trim().lines().map { it.toLong() }
+private fun parseInput(input: String) = input.lines().map { it.toLong() }
 
 fun fuelRequirements(input: String): Long =
     parseInput(input).sumOf(::fuelRequirement)
