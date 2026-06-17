@@ -59,3 +59,9 @@ fun findClosestIntersection(input: String): Int {
         .map { abs(it.x) + abs(it.y) }
         .filter { it != 0 }.min()
 }
+
+fun findFewestCombinedSteps(input: String): Int {
+    val (wire1, wire2) = input.split("\n").map { createWire(it) }
+    return (wire1.keys intersect wire2.keys)
+        .minOf { wire1.getValue(it) + wire2.getValue(it) }
+}
