@@ -35,20 +35,27 @@ private fun parsePath(input: String): List<Segment> = input.split(",")
         }
     }
 
-fun findClosestIntersection(input: String): Int {
-    return input.split("\n").map { line ->
-        val points = mutableListOf<Point>()
-        points.add(Point(0, 0))
-        val segments = parsePath(line)
-        segments.forEach { segment ->
-            repeat(segment.distance) {
-                val p = points.last()
-                points.add(Point(p.x + segment.direction.x, p.y + segment.direction.y))
-            }
+private fun createWire(input: String): Map<Point, Int> {
+    val points = mutableMapOf<Point, Int>()
+
+    var lastPoint = Point(0, 0)
+    var idx = 0
+
+    val segments = parsePath(input)
+    segments.forEach { segment ->
+        repeat(segment.distance) {
+            val point = Point(lastPoint.x + segment.direction.x, lastPoint.y + segment.direction.y)
+            lastPoint = point
+            idx += 1
+            points.computeIfAbsent(point) { idx }
         }
-        points.toSet()
-    }.reduceOrNull { acc, s -> acc intersect s }
-        ?.filter { it != Point(0, 0) }
-        ?.minOf { p -> abs(p.x) + abs(p.y) }
-        ?: throw IllegalStateException("Wires do not cross")
+    }
+    return points.toMap()
+}
+
+fun findClosestIntersection(input: String): Int {
+    val (wire1, wire2) = input.split("\n").map { createWire(it).keys }
+    return (wire1 intersect wire2)
+        .map { abs(it.x) + abs(it.y) }
+        .filter { it != 0 }.min()
 }
