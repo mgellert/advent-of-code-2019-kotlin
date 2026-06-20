@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mgellert.aoc2019.readInput
 
-class FuelRequirementTest {
+class TheTyrannyOfTheRocketEquationTest {
 
     @Test
     fun `should sum fuel requirements of test input`() {

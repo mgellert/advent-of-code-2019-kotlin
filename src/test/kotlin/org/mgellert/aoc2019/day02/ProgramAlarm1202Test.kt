@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test
 import org.mgellert.aoc2019.readInput
 import kotlin.test.assertEquals
 
-class IntcodeAddAndMultiplyTest {
+class ProgramAlarm1202Test {
 
     @Test
     fun `should run the gravity assist program with set parameters`() {
