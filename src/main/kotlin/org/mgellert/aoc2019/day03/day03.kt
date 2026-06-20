@@ -2,6 +2,7 @@ package org.mgellert.aoc2019.day03
 
 import kotlin.math.abs
 
+
 val segmentRegex = Regex("""([RLUD])(\d+)""")
 
 private enum class Direction(val x: Int, val y: Int) {
