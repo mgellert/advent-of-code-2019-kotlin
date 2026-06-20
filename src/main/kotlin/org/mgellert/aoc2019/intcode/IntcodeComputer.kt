@@ -6,11 +6,14 @@ import org.mgellert.aoc2019.intcode.IntcodeComputer.ParameterMode.POSITION
 typealias Memory = MutableList<Int>
 
 
-object IntcodeComputer {
-    private enum class OpCode {
-        ADD,
-        MULTIPLY,
-        EXIT,
+class IntcodeComputer(val memory: Memory, private var ip: Int = 0) {
+
+    private lateinit var currIns: Instruction
+
+    private enum class OpCode(val inc: Int) {
+        ADD(4),
+        MULTIPLY(4),
+        EXIT(0),
     }
 
     private fun getOpCode(n: Int): OpCode = when (n) {
@@ -47,36 +50,35 @@ object IntcodeComputer {
         )
     }
 
-    private fun Memory.read(pos: Int, ins: Instruction, ip: Int): Int {
-        val mode = ins.modes[pos - 1]
+    private fun read(pos: Int): Int {
+        val mode = currIns.modes[pos - 1]
         return when (mode) {
-            POSITION -> this[this[ip + pos]]
-            IMMEDIATE -> this[ip + pos]
+            POSITION -> memory[memory[ip + pos]]
+            IMMEDIATE -> memory[ip + pos]
         }
     }
 
-    private fun Memory.write(pos: Int, value: Int, ip: Int) {
-        this[this[ip + pos]] = value
+    private fun write(pos: Int, value: Int) {
+        memory[memory[ip + pos]] = value
     }
 
-    fun String.toMemory() = this.split(",").map { it.toInt() }.toMutableList()
-
-    tailrec fun run(memory: Memory, ip: Int = 0) {
-        val instruction = memory[ip].toInstruction()
-        when (instruction.opCode) {
-            OpCode.ADD -> {
-                val value = memory.read(1, instruction, ip) + memory.read(2, instruction, ip)
-                memory.write(3, value, ip)
-                run(memory, ip + 4)
-            }
-
-            OpCode.MULTIPLY -> {
-                memory[memory[ip + 3]] = memory[memory[ip + 1]] * memory[memory[ip + 2]]
-                run(memory, ip + 4)
-            }
-
+    tailrec fun run() {
+        currIns = memory[ip].toInstruction()
+        when (currIns.opCode) {
+            OpCode.ADD -> write(3) { read(1) + read(2) }
+            OpCode.MULTIPLY -> write(3) { read(1) * read(2) }
             OpCode.EXIT -> return
         }
+        ip += currIns.opCode.inc
+        run()
+    }
+
+    private fun write(pos: Int, fn: () -> Int) {
+        write(pos, fn())
+    }
+
+    companion object {
+        fun String.toMemory() = this.split(",").map { it.toInt() }.toMutableList()
     }
 }
 
