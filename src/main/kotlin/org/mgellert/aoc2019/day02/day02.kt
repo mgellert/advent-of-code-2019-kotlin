@@ -1,13 +1,14 @@
 package org.mgellert.aoc2019.day02
 
-import org.mgellert.aoc2019.intcode.run
+import org.mgellert.aoc2019.intcode.IntcodeComputer
+import org.mgellert.aoc2019.intcode.IntcodeComputer.toMemory
 
 
 fun runGravityAssistProgram(input: String, noun: Int, verb: Int): Int {
-    val memory = input.split(",").map { it.toInt() }.toMutableList()
+    val memory = input.toMemory()
     memory[1] = noun
     memory[2] = verb
-    run(memory)
+    IntcodeComputer.run(memory)
     return memory[0]
 }
 
