@@ -6,19 +6,28 @@ import org.mgellert.aoc2019.intcode.IntcodeComputer.ParameterMode.POSITION
 typealias Memory = MutableList<Int>
 
 
-class IntcodeComputer(val memory: Memory, private var ip: Int = 0) {
+class IntcodeComputer(val memory: Memory) {
+
+    private var ip: Int = 0
 
     private lateinit var currIns: Instruction
+
+    private val output: MutableList<Int> = mutableListOf()
+    private var input: Int? = null
 
     private enum class OpCode(val inc: Int) {
         ADD(4),
         MULTIPLY(4),
+        INPUT(2),
+        OUTPUT(2),
         EXIT(0),
     }
 
     private fun getOpCode(n: Int): OpCode = when (n) {
         1 -> OpCode.ADD
         2 -> OpCode.MULTIPLY
+        3 -> OpCode.INPUT
+        4 -> OpCode.OUTPUT
         99 -> OpCode.EXIT
         else -> throw IllegalArgumentException("No such opcode: $n")
     }
@@ -62,20 +71,43 @@ class IntcodeComputer(val memory: Memory, private var ip: Int = 0) {
         memory[memory[ip + pos]] = value
     }
 
-    tailrec fun run() {
-        currIns = memory[ip].toInstruction()
-        when (currIns.opCode) {
-            OpCode.ADD -> write(3) { read(1) + read(2) }
-            OpCode.MULTIPLY -> write(3) { read(1) * read(2) }
-            OpCode.EXIT -> return
-        }
-        ip += currIns.opCode.inc
-        run()
-    }
-
     private fun write(pos: Int, fn: () -> Int) {
         write(pos, fn())
     }
+
+    enum class Status {
+        EXIT,
+        WAITING
+    }
+
+    fun setInput(i: Int) {
+        input = i
+    }
+
+    fun lastOutput(): Int = output.last()
+
+
+    fun run(): Status {
+        while (true) {
+            currIns = memory[ip].toInstruction()
+            when (currIns.opCode) {
+                OpCode.ADD -> write(3) { read(1) + read(2) }
+                OpCode.MULTIPLY -> write(3) { read(1) * read(2) }
+                OpCode.INPUT -> {
+                    if (input == null) return Status.WAITING
+                    write(1) { input!! }
+                    input = null
+                }
+                OpCode.OUTPUT -> {
+                    val value = read(1)
+                    output.add(value)
+                }
+                OpCode.EXIT -> return Status.EXIT
+            }
+            ip += currIns.opCode.inc
+        }
+    }
+
 
     companion object {
         fun String.toMemory() = this.split(",").map { it.toInt() }.toMutableList()
