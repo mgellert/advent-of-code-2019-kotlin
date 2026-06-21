@@ -15,12 +15,16 @@ class IntcodeComputer(val memory: Memory) {
     private val output: MutableList<Int> = mutableListOf()
     private var input: Int? = null
 
-    private enum class OpCode(val inc: Int) {
-        ADD(4),
-        MULTIPLY(4),
-        INPUT(2),
-        OUTPUT(2),
-        EXIT(0),
+    private enum class OpCode {
+        ADD,
+        MULTIPLY,
+        INPUT,
+        OUTPUT,
+        JUMP_IF_TRUE,
+        JUMP_IF_FALSE,
+        LESS_THAN,
+        EQUALS,
+        EXIT,
     }
 
     private fun getOpCode(n: Int): OpCode = when (n) {
@@ -28,6 +32,10 @@ class IntcodeComputer(val memory: Memory) {
         2 -> OpCode.MULTIPLY
         3 -> OpCode.INPUT
         4 -> OpCode.OUTPUT
+        5 -> OpCode.JUMP_IF_TRUE
+        6 -> OpCode.JUMP_IF_FALSE
+        7 -> OpCode.LESS_THAN
+        8 -> OpCode.EQUALS
         99 -> OpCode.EXIT
         else -> throw IllegalArgumentException("No such opcode: $n")
     }
@@ -91,23 +99,55 @@ class IntcodeComputer(val memory: Memory) {
         while (true) {
             currIns = memory[ip].toInstruction()
             when (currIns.opCode) {
-                OpCode.ADD -> write(3) { read(1) + read(2) }
-                OpCode.MULTIPLY -> write(3) { read(1) * read(2) }
+                OpCode.ADD -> {
+                    write(3) { read(1) + read(2) }
+                    ip += 4
+                }
+
+                OpCode.MULTIPLY -> {
+                    write(3) { read(1) * read(2) }
+                    ip += 4
+                }
+
                 OpCode.INPUT -> {
                     if (input == null) return Status.WAITING
                     write(1) { input!! }
                     input = null
+                    ip += 2
                 }
+
                 OpCode.OUTPUT -> {
                     val value = read(1)
                     output.add(value)
+                    ip += 2
                 }
-                OpCode.EXIT -> return Status.EXIT
+
+                OpCode.JUMP_IF_TRUE -> {
+                    val value = read(1)
+                    if (value != 0) ip = read(2) else ip += 3
+                }
+
+                OpCode.JUMP_IF_FALSE -> {
+                    val value = read(1)
+                    if (value == 0) ip = read(2) else ip += 3
+                }
+
+                OpCode.LESS_THAN -> {
+                    write(3) { if(read(1) < read(2)) 1 else 0 }
+                    ip += 4
+                }
+
+                OpCode.EQUALS -> {
+                    write(3) { if(read(1) == read(2)) 1 else 0 }
+                    ip += 4
+                }
+
+                OpCode.EXIT -> {
+                    return Status.EXIT
+                }
             }
-            ip += currIns.opCode.inc
         }
     }
-
 
     companion object {
         fun String.toMemory() = this.split(",").map { it.toInt() }.toMutableList()
